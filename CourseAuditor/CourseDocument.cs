@@ -9,10 +9,6 @@ namespace CourseAuditor
 	{
 		private HtmlAgilityPack.HtmlDocument htmlDoc;
 		private String DocName, OrgUnitID, DocID;
-		
-		public CourseDocument ()
-		{
-		}
 
 		public void loadDoc (String filepath, String docname, String orgunitid, String docid) {
 			// Load file into parser
@@ -24,7 +20,7 @@ namespace CourseAuditor
 			OrgUnitID = orgunitid;
 			DocID = docid;
 
-			//* Test cases
+			/* Test cases
 			Console.WriteLine ("Spans:  " + CountQuery("//span"));
 			Console.WriteLine ("Regex:  " + CountRegEx ("<span>"));
 			Console.WriteLine ("Title:  " + getHtmlTitle());
@@ -36,7 +32,11 @@ namespace CourseAuditor
 
 		// Counts an XPath query
 		public int CountQuery (String query) {
-			return htmlDoc.DocumentNode.SelectNodes(query).Count;
+			if (htmlDoc.DocumentNode.SelectNodes (query) == null) {
+				return 0;
+			} else {
+				return htmlDoc.DocumentNode.SelectNodes (query).Count;
+			}
 		}
 
 		// Counts occureneces of a Regular Expression
