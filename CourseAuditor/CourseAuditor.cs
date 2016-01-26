@@ -8,8 +8,11 @@ namespace CourseAuditor
 	{
 		public static void Main (string[] args)
 		{
-			String header = "OrgUnitID,DocTitle,HTMLTitle,All Links,Spans,\n";
+			// Write the header
+			String header = "OrgUnitID,DocTitle,HTMLTitle,IL2 Links,Box Links,Benjamin Links,Spans,\n";
 			PrintToFile ("C:\\Users\\gbjohnson\\Desktop\\CHILD\\NewReport.csv", header);
+
+			// Run the course
 			parseManifestAndRun ("C:\\Users\\gbjohnson\\Desktop\\CHILD");
 		}
 
@@ -41,6 +44,7 @@ namespace CourseAuditor
 							doctitle = itemElems [h].ChildNodes [0].InnerText;
 							ident = itemElems [h].Attributes ["identifier"].InnerText;
 
+							// If said HTML file exists, run
 							if (File.Exists (path + "//" + filepath)) {
 								// Initialize the document
 								doc.loadDoc (path + "//" + filepath, doctitle, orgunitid, ident);
@@ -50,7 +54,9 @@ namespace CourseAuditor
 									orgunitid + ","
 									+ doctitle + ","
 									+ doc.getHtmlTitle() + ","
-									+ doc.CountQuery("//a") + ","
+									+ doc.CountQuery("//a[contains(@href, 'brainhoney')]") + ","
+									+ doc.CountQuery("//a[contains(@href, 'box.com')]") + ","
+									+ doc.CountQuery("//a[contains(@href, 'courses.byui.edu')]") + ","
 									+ doc.CountQuery ("//span") + ",\n"
 								);
 							}
@@ -62,10 +68,13 @@ namespace CourseAuditor
 
 
 		public static void PrintToFile(String file, String content) {
+			// Make the file if it doesn't exist
 			if (!File.Exists (file)) {
 				using (StreamWriter sw = File.CreateText (file)) {
 				}
 			}
+
+			// Write to file if it does
 			using (StreamWriter sw = File.AppendText(file)) {
 				sw.Write (content);
 			}
