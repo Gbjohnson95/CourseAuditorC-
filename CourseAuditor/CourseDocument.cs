@@ -19,15 +19,6 @@ namespace CourseAuditor
 			DocName = docname;
 			OrgUnitID = orgunitid;
 			DocID = docid;
-
-			/* Test cases
-			Console.WriteLine ("Spans:  " + CountQuery("//span"));
-			Console.WriteLine ("Regex:  " + CountRegEx ("<span>"));
-			Console.WriteLine ("Title:  " + getHtmlTitle());
-			Console.WriteLine ("Header: " + checkHeaders());
-			Console.WriteLine ("Link:   " + generateD2lLink ());
-			Console.ReadLine(); // Gheto wait function
-			//*/
 		}
 
 		// Counts an XPath query
