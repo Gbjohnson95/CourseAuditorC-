@@ -2,32 +2,56 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Xml;
+using HtmlAgilityPack;
+using System.Xml.XPath;
+using CsQuery;
 
 namespace CourseAuditor
 {
 	class MainClass
 	{
+		private static XmlDocument config;
+
+
 		public static void Main (string[] args)
 		{
-
-
-			// Write the header
-			String header = "OrgUnitID,DocTitle,HTMLTitle,IL2 Links,Box Links,Benjamin Links,Static IL3 Links,Bad Target Attr,IL3 Images,CSS Bolds,Spans,Depricated Tags,IL2 Variables,Mentions of Saturday,Headers,Link,\n";
-			String folder = args[0];
-			String report = Path.Combine (folder, "report.csv");
-			try {
-				startReport (report, header);
-			} catch (Exception e) {
-				Console.WriteLine ("Error encountered trying to make report file.");
-				Console.WriteLine ("\tSource: " + e.TargetSite);
-			} 
-			unZipAndRun (folder, report);
+			readConfigAndRun (args[0]);
 			Console.ReadKey ();
+		}
+
+		public static void readConfigAndRun(String configPath) {
+			config = new XmlDocument();
+			config.Load (configPath);
+			unZipAndRun(getTextNode (config.GetElementsByTagName ("containerFolder")[0]), getTextNode(config.GetElementsByTagName ("outFile") [0]));
+		}
+
+		public static String getHeader () {
+			XmlNodeList printItems = config.GetElementsByTagName ("printItem");
+			String stringBuilder = "";
+			foreach (XmlNode node in printItems) {
+				stringBuilder += getTextNode (node.SelectSingleNode ("printTitle")) + ",";
+			}
+			return stringBuilder + "\n";
+		}
+
+
+		public static String getTextNode (XmlNode node) {
+			foreach (XmlNode child in node.ChildNodes)
+			{
+				if (child.NodeType == XmlNodeType.Text ||
+					child.NodeType == XmlNodeType.CDATA)
+				{
+					return child.Value;
+				}
+			} 
+			return "";
 		}
 
 		public static void unZipAndRun ( String topDir, String reportFile ) {
 			String[] zipsList = Directory.GetFiles (topDir, "*.zip");
 			String extractFolder;
+			startReportFile (reportFile);
+			PrintToFile (reportFile, getHeader ());
 
 			// Extract zips
 			Console.WriteLine ("---------- EXTRACTING ZIPS           ----------\n");
@@ -72,7 +96,7 @@ namespace CourseAuditor
 			manifest.Load (path + "\\imsmanifest.xml");
 
 			// Declare some variables
-			String doctitle, ident, filepath, orgunitid;
+			String doctitle, ident, filepath, orgunitid, stringBuilder = "", type;
 
 			// Populate some variables
 			XmlNodeList resourceElems = manifest.GetElementsByTagName("resource");
@@ -82,10 +106,12 @@ namespace CourseAuditor
 			// Declare a CourseDocument
 			CourseDocument doc = new CourseDocument ();
 
+			XmlNodeList printItem = config.GetElementsByTagName ("printItem");
+
 			// Increment through the elements
-			for (int i=0; i < resourceElems.Count; i++) {
-				if ("content".Equals (resourceElems[i].Attributes ["d2l_2p0:material_type"].InnerText)) { // If the item is a content page
-					filepath = resourceElems[i].Attributes ["href"].InnerText; // Get the path
+			for (int i = 0; i < resourceElems.Count; i++) {
+				if ("content".Equals (resourceElems [i].Attributes ["d2l_2p0:material_type"].InnerText)) { // If the item is a content page
+					filepath = resourceElems [i].Attributes ["href"].InnerText; // Get the path
 					for (int h = 0; h < itemElems.Count; h++) { // Increment through the items list
 						// If the item matches its resource item, and the document is infact an HTML pagem run!
 						if (itemElems [h].Attributes ["identifierref"].InnerText.Equals (resourceElems [i].Attributes ["identifier"].InnerText)) {
@@ -94,34 +120,44 @@ namespace CourseAuditor
 							ident = itemElems [h].Attributes ["identifier"].InnerText;
 
 							// Get rid of commas
-							doctitle = doctitle.Replace(",", "");
+							doctitle = doctitle.Replace (",", "");
 							doctitle = doctitle.Replace ("\n", "");
 
 							// If said HTML file exists, run
-							if (File.Exists (Path.Combine(path, filepath))) {
+							if (File.Exists (Path.Combine (path, filepath))) {
 								// Initialize the document
 								if (filepath.EndsWith ("html")) {
 									doc.loadDoc (Path.Combine (path, filepath), doctitle, orgunitid, ident);
 
 									// Start pulling data from the document and putting it into a return string
-									PrintToFile (reportfile, 
-										orgunitid + ","// OrgUnitID of document
-										+ doctitle + ","// Title as the course displays it
-										+ doc.getHtmlTitle () + ","// HTML Title
-										+ doc.CountQuery ("a[href*='brainhoney']") + ","// IL2 Links
-										+ doc.CountQuery ("a[href*='box.com']") + ","// Box Links
-										+ doc.CountQuery ("a[href*='courses.byui.edu']") + ","// Benjamin Links
-										+ doc.CountQuery ("a[href*=/home], a[href*=/viewContent], a[href*=/calendar]") + ","// Static IL3 Links
-										+ doc.CountQuery ("a:not([target*='_blank'])") + ","// Links with bad targets
-										+ doc.CountQuery ("img[src*='brainhoney']") + ","// IL2 Links
-										+ doc.CountRegEx ("font-weight\\:bold") + ","// CSS Bolds
-										+ doc.CountQuery ("span") + ","// Spans
-										+ doc.CountQuery ("b, i, br") + ","// Depricated tags
-										+ doc.CountRegEx ("\\$[A-Za-z]+\\S\\$") + ","// IL2 Varables
-										+ doc.CountRegEx ("[sS]aturday") + ","// Mentions Saturday
-										+ doc.checkHeaders () + ","// Verify headers comply with ADA
-										+ doc.generateD2lLink () + ",\n" // Generate link to the document
-									);
+									foreach (XmlNode node in printItem) {
+										type = node.SelectSingleNode ("query").Attributes ["type"].InnerText;
+										switch (type) {
+										case "OUI":
+											stringBuilder += orgunitid + ",";// OrgUnitID of document
+											break;
+										case "DocTitle":
+											stringBuilder += doctitle + ",";// Title as the course displays it
+											break;
+										case "htmlTitle":
+											stringBuilder += doc.getHtmlTitle () + ",";// HTML Title
+											break;
+										case "CSS":
+											stringBuilder += doc.CountQuery (getTextNode (node.SelectSingleNode ("query"))) + ","; // Gets a CSS Query
+											break;
+										case "RegEx":
+											stringBuilder += doc.CountRegEx (getTextNode (node.SelectSingleNode ("query"))) + ","; // Gets a RegEx
+											break;
+										case "Headers":
+											stringBuilder += doc.checkHeaders () + ","; // Checks Header
+											break;
+										case "Link":
+											stringBuilder += doc.generateD2lLink () + ","; // Generates a D2L Link
+											break;
+										}
+									}
+									PrintToFile (reportfile, stringBuilder + "\n");
+									stringBuilder = "";
 								}
 							}
 						}
@@ -144,12 +180,9 @@ namespace CourseAuditor
 			}
 		}
 
-		public static void startReport(String file, String header) {
+		public static void startReportFile(String file) {
 			if (File.Exists (file)) {
 				File.Delete (file);
-				PrintToFile (file, header);
-			} else {
-				PrintToFile (file, header);
 			}
 
 		}
