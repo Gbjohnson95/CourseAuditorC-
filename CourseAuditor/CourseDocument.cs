@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 using System.Xml.XPath;
+using CsQuery;
 
 namespace CourseAuditor
 {
@@ -9,11 +10,13 @@ namespace CourseAuditor
 	{
 		private HtmlAgilityPack.HtmlDocument htmlDoc;
 		private String DocName, OrgUnitID, DocID;
+		private CQ dom;
 
 		public void loadDoc (String filepath, String docname, String orgunitid, String docid) {
 			// Load file into parser
 			htmlDoc = new HtmlAgilityPack.HtmlDocument();
 			htmlDoc.Load (filepath);
+			dom = CQ.Create (htmlDoc.DocumentNode.OuterHtml);
 
 			// Set variables
 			DocName = docname;
@@ -21,13 +24,10 @@ namespace CourseAuditor
 			DocID = docid;
 		}
 
-		// Counts an XPath query
+		// Counts a CSS query
 		public int CountQuery (String query) {
-			if (htmlDoc.DocumentNode.SelectNodes (query) == null) {
-				return 0;
-			} else {
-				return htmlDoc.DocumentNode.SelectNodes (query).Count;
-			}
+			CQ result = dom.Select (query);
+			return result.Length;
 		}
 
 		// Counts occureneces of a Regular Expression
@@ -46,6 +46,8 @@ namespace CourseAuditor
 			} else {
 				title = "ERROR: NO TITLE FOUND";
 			}
+			title = title.Replace(",", "");
+			title = title.Replace ("\n", "");
 			return title;
 		}
 

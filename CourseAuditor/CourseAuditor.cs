@@ -88,37 +88,42 @@ namespace CourseAuditor
 					filepath = resourceElems[i].Attributes ["href"].InnerText; // Get the path
 					for (int h = 0; h < itemElems.Count; h++) { // Increment through the items list
 						// If the item matches its resource item, and the document is infact an HTML pagem run!
-						if (itemElems [h].Attributes ["identifierref"].InnerText.Equals (resourceElems [i].Attributes ["identifier"].InnerText) && filepath.Contains(".html")) {
+						if (itemElems [h].Attributes ["identifierref"].InnerText.Equals (resourceElems [i].Attributes ["identifier"].InnerText)) {
 							// Get the last set of data before running document
 							doctitle = itemElems [h].ChildNodes [0].InnerText;
 							ident = itemElems [h].Attributes ["identifier"].InnerText;
 
-							// If said HTML file exists, run
-							if (File.Exists (path + "//" + filepath)) {
-								// Initialize the document
-								doc.loadDoc (path + "//" + filepath, doctitle, orgunitid, ident);
+							// Get rid of commas
+							doctitle = doctitle.Replace(",", "");
+							doctitle = doctitle.Replace ("\n", "");
 
-								// Start pulling data from the document and putting it into a return string
-								PrintToFile ( reportfile, 
-									"\"" + orgunitid + "\","
-									+ "\"" + doctitle + "\","
-									+ "\"" + doc.getHtmlTitle() + "\","
-									+ "\"" + doc.CountQuery("//a[contains(@href, 'brainhoney')]") + "\"," // IL2 Links
-									+ "\"" + doc.CountQuery("//a[contains(@href, 'box.com')]") + "\"," // Box Links
-									+ "\"" + doc.CountQuery("//a[contains(@href, 'courses.byui.edu')]") + "\"," // Benjamin Links
-									+ "\"" + doc.CountQuery("//a[contains(@href, '/home')] | //a[contains(@href, '/contentView')] | //a[contains(@href, '/calendar')]") + "\"," // Static Links
-									+ "\"" + doc.CountQuery("//a[@target != '_blank'] | a[not(@target)]") + "\","
-									+ "\"" + doc.CountQuery("//img[contains(@href, 'brainhoney')]") + "\","
-									+ "\"" + doc.CountRegEx("font-weight\\:bold") + "\","
-									+ "\"" + doc.CountQuery("//span") + "\","
-									+ "\"" + doc.CountQuery("//b | //i | //br") + "\","
-									+ "\"" + doc.CountRegEx("\\$[A-Za-z]+\\S\\$") + "\","
-									+ "\"" + doc.CountRegEx("[sS]aturday") + "\","
-									+ "\"" + doc.checkHeaders() + "\","
-									+ "\"" + doc.generateD2lLink() + "\",\n"
+							// If said HTML file exists, run
+							if (File.Exists (Path.Combine(path, filepath))) {
+								// Initialize the document
+								if (filepath.EndsWith ("html")) {
+									doc.loadDoc (Path.Combine (path, filepath), doctitle, orgunitid, ident);
+
+									// Start pulling data from the document and putting it into a return string
+									PrintToFile (reportfile, 
+										orgunitid + ","// OrgUnitID of document
+										+ doctitle + ","// Title as the course displays it
+										+ doc.getHtmlTitle () + ","// HTML Title
+										+ doc.CountQuery ("a[href*='brainhoney']") + ","// IL2 Links
+										+ doc.CountQuery ("a[href*='box.com']") + ","// Box Links
+										+ doc.CountQuery ("a[href*='courses.byui.edu']") + ","// Benjamin Links
+										+ doc.CountQuery ("a[href*=/home], a[href*=/viewContent], a[href*=/calendar]") + ","// Static IL3 Links
+										+ doc.CountQuery ("a:not([target*='_blank'])") + ","// Links with bad targets
+										+ doc.CountQuery ("img[src*='brainhoney']") + ","// IL2 Links
+										+ doc.CountRegEx ("font-weight\\:bold") + ","// CSS Bolds
+										+ doc.CountQuery ("span") + ","// Spans
+										+ doc.CountQuery ("b, i, br") + ","// Depricated tags
+										+ doc.CountRegEx ("\\$[A-Za-z]+\\S\\$") + ","// IL2 Varables
+										+ doc.CountRegEx ("[sS]aturday") + ","// Mentions Saturday
+										+ doc.checkHeaders () + ","// Verify headers comply with ADA
+										+ doc.generateD2lLink () + ",\n" // Generate link to the document
 									);
 								}
-
+							}
 						}
 					}
 				}
