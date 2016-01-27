@@ -13,26 +13,50 @@ namespace CourseAuditor
 			String header = "OrgUnitID,DocTitle,HTMLTitle,IL2 Links,Box Links,Benjamin Links,Static IL3 Links,Bad Target Attr,IL3 Images,CSS Bolds,Spans,Depricated Tags,IL2 Variables,Mentions of Saturday,Headers,Link,\n";
 			String folder = "C:\\Users\\gbjohnson\\Desktop\\mintest";
 			String report = Path.Combine (folder, "report.csv");
-			PrintToFile (report, header);
+			try {
+				startReport (report, header);
+			} catch (Exception e) {
+				Console.WriteLine ("Error encountered trying to make report file.");
+				Console.WriteLine (e);
+			} 
 			unZipAndRun (folder, report);
+			Console.ReadKey ();
 		}
 
 		public static void unZipAndRun ( String topDir, String reportFile ) {
 			String[] zipsList = Directory.GetFiles (topDir, "*.zip");
 			String extractFolder;
+
+			// Extract zips
 			for (int i = 0; i < zipsList.Length; i++) {
+				// Generate extact folder name
 				extractFolder = Path.Combine (topDir, zipsList [i].Replace (".zip", ""));
-				System.IO.Directory.CreateDirectory (extractFolder);
-				Console.WriteLine ("About to extract " + zipsList [i]);
-				ZipFile.ExtractToDirectory (Path.Combine (topDir, zipsList [i]), extractFolder);
-				parseManifestAndRun (extractFolder, reportFile);
+				// If that folder already exists, skip
+				if (!Directory.Exists (Path.Combine(topDir,extractFolder))) {
+					System.IO.Directory.CreateDirectory (extractFolder);
+					Console.WriteLine ("About to extract " + zipsList [i]);
+					ZipFile.ExtractToDirectory (Path.Combine (topDir, zipsList [i]), extractFolder);
+					Console.WriteLine ("Extracted " + zipsList [i] + "\n\n");
+				}
+			}
+
+			// Run folders that contain a manifest
+			String[] folders = Directory.GetDirectories(topDir);
+			for (int h = 0; h < folders.Length; h++) {
+				if (File.Exists (Path.Combine (folders [h], "imsmanifest.xml"))) {
+					try {
+					parseManifestAndRun (folders[h], reportFile);
+					} catch (Exception e) {
+						Console.WriteLine ("Failed to audit course " + folders [h]);
+						Console.WriteLine (e);
+					}
+				}
 			}
 		}
 
 		public static void parseManifestAndRun( String path, String reportfile) {
 			// Load Manifest file from specified path
 			XmlDocument manifest = new XmlDocument();
-			Console.WriteLine (path + "\\imsmanifest.xml");
 			manifest.Load (path + "\\imsmanifest.xml");
 
 			// Declare some variables
@@ -80,8 +104,9 @@ namespace CourseAuditor
 									+ "\"" + doc.CountRegEx("[sS]aturday") + "\","
 									+ "\"" + doc.checkHeaders() + "\","
 									+ "\"" + doc.generateD2lLink() + "\",\n"
-								);
-							}
+									);
+								}
+
 						}
 					}
 				}
@@ -100,6 +125,16 @@ namespace CourseAuditor
 			using (StreamWriter sw = File.AppendText(file)) {
 				sw.Write (content);
 			}
+		}
+
+		public static void startReport(String file, String header) {
+			if (File.Exists (file)) {
+				File.Delete (file);
+				PrintToFile (file, header);
+			} else {
+				PrintToFile (file, header);
+			}
+
 		}
 	}
 }
