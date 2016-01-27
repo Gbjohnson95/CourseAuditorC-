@@ -9,15 +9,17 @@ namespace CourseAuditor
 	{
 		public static void Main (string[] args)
 		{
+
+
 			// Write the header
 			String header = "OrgUnitID,DocTitle,HTMLTitle,IL2 Links,Box Links,Benjamin Links,Static IL3 Links,Bad Target Attr,IL3 Images,CSS Bolds,Spans,Depricated Tags,IL2 Variables,Mentions of Saturday,Headers,Link,\n";
-			String folder = "C:\\Users\\gbjohnson\\Desktop\\mintest";
+			String folder = args[0];
 			String report = Path.Combine (folder, "report.csv");
 			try {
 				startReport (report, header);
 			} catch (Exception e) {
 				Console.WriteLine ("Error encountered trying to make report file.");
-				Console.WriteLine ("\tSource: " + e.Source);
+				Console.WriteLine ("\tSource: " + e.TargetSite);
 			} 
 			unZipAndRun (folder, report);
 			Console.ReadKey ();
@@ -57,7 +59,7 @@ namespace CourseAuditor
 						Console.WriteLine ("\tSource: " + e.Source);
 					} catch (Exception e) {
 						Console.WriteLine ("Failed to audit course " + new DirectoryInfo(folders [h]).Name);
-						Console.WriteLine ("\tSource: " + e.Source);
+						Console.WriteLine ("\tSource: " + e.TargetSite);
 					}
 				}
 			}

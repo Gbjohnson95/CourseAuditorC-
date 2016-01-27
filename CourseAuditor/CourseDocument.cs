@@ -37,7 +37,10 @@ namespace CourseAuditor
 
 		// Gets the HTML title
 		public String getHtmlTitle () {
-			String title, rawTitle = htmlDoc.DocumentNode.SelectSingleNode ("//title").InnerText;
+			String title, rawTitle = "";
+			if (htmlDoc.DocumentNode.SelectSingleNode ("//title") != null) {
+				rawTitle = htmlDoc.DocumentNode.SelectSingleNode ("//title").InnerText;
+			}
 			if (rawTitle != null && rawTitle != "") {
 				title = rawTitle;
 			} else {
