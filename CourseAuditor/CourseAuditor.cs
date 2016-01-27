@@ -17,7 +17,7 @@ namespace CourseAuditor
 				startReport (report, header);
 			} catch (Exception e) {
 				Console.WriteLine ("Error encountered trying to make report file.");
-				Console.WriteLine (e);
+				Console.WriteLine ("\tSource: " + e.Source);
 			} 
 			unZipAndRun (folder, report);
 			Console.ReadKey ();
@@ -28,30 +28,40 @@ namespace CourseAuditor
 			String extractFolder;
 
 			// Extract zips
+			Console.WriteLine ("---------- EXTRACTING ZIPS           ----------\n");
 			for (int i = 0; i < zipsList.Length; i++) {
 				// Generate extact folder name
 				extractFolder = Path.Combine (topDir, zipsList [i].Replace (".zip", ""));
+
 				// If that folder already exists, skip
 				if (!Directory.Exists (Path.Combine(topDir,extractFolder))) {
 					System.IO.Directory.CreateDirectory (extractFolder);
-					Console.WriteLine ("About to extract " + zipsList [i]);
+					Console.WriteLine ("About to extract  " + new DirectoryInfo(zipsList [i]).Name);
 					ZipFile.ExtractToDirectory (Path.Combine (topDir, zipsList [i]), extractFolder);
-					Console.WriteLine ("Extracted " + zipsList [i] + "\n\n");
+					Console.WriteLine ("\tExtracted " + new DirectoryInfo(zipsList [i]).Name + "\n");
 				}
 			}
+			Console.WriteLine ("---------- FINISHED EXTRACTING ZIPS  ----------\n\n");
 
 			// Run folders that contain a manifest
+			Console.WriteLine ("---------- AUDITING COURSES          ---------- ");
 			String[] folders = Directory.GetDirectories(topDir);
 			for (int h = 0; h < folders.Length; h++) {
 				if (File.Exists (Path.Combine (folders [h], "imsmanifest.xml"))) {
 					try {
-					parseManifestAndRun (folders[h], reportFile);
+						Console.WriteLine("Auditing: " + new DirectoryInfo(folders[h]).Name);
+						parseManifestAndRun (folders[h], reportFile);
+					} catch (System.Xml.XmlException e) {
+						Console.WriteLine ("\tFailed to audit course " + new DirectoryInfo(folders [h]).Name);
+						Console.WriteLine ("\tInvalid XML found. Moving On.");
+						Console.WriteLine ("\tSource: " + e.Source);
 					} catch (Exception e) {
-						Console.WriteLine ("Failed to audit course " + folders [h]);
-						Console.WriteLine (e);
+						Console.WriteLine ("Failed to audit course " + new DirectoryInfo(folders [h]).Name);
+						Console.WriteLine ("\tSource: " + e.Source);
 					}
 				}
 			}
+			Console.WriteLine ("---------- FINISHED AUDITING COURSES ----------");
 		}
 
 		public static void parseManifestAndRun( String path, String reportfile) {
