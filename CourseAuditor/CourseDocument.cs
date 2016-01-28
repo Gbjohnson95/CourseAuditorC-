@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
-using System.Xml.XPath;
 using CsQuery;
 
 namespace CourseAuditor
@@ -38,8 +37,8 @@ namespace CourseAuditor
 		// Gets the HTML title
 		public String getHtmlTitle () {
 			String title, rawTitle = "";
-			if (htmlDoc.DocumentNode.SelectSingleNode ("//title") != null) {
-				rawTitle = htmlDoc.DocumentNode.SelectSingleNode ("//title").InnerText;
+			if (dom.Select("title") != null) {
+				rawTitle = dom.Select("title").Html();
 			}
 			if (rawTitle != null && rawTitle != "") {
 				title = rawTitle;
@@ -54,22 +53,22 @@ namespace CourseAuditor
 		// Checks the headers for ADA compliance
 		public String checkHeaders () {
 			String headers = "";
-			if (htmlDoc.DocumentNode.SelectSingleNode("//h1") != null) {
+			if (dom.Select("h1").Length > 0) {
 				headers += "1";
 			}
-			if (htmlDoc.DocumentNode.SelectSingleNode("//h2") != null) {
+			if (dom.Select("h2").Length > 0) {
 				headers += "2";
 			}
-			if (htmlDoc.DocumentNode.SelectSingleNode("//h3") != null) {
+			if (dom.Select("h3").Length > 0) {
 				headers += "3";
 			}
-			if (htmlDoc.DocumentNode.SelectSingleNode("//h4") != null) {
+			if (dom.Select("h4").Length > 0) {
 				headers += "4";
 			}
-			if (htmlDoc.DocumentNode.SelectSingleNode("//h5") != null) {
+			if (dom.Select("h5").Length > 0) {
 				headers += "5";
 			}
-			if (htmlDoc.DocumentNode.SelectSingleNode("//h6") != null) {
+			if (dom.Select("h6").Length > 0) {
 				headers += "6";
 			}
 			if (headers == "") {

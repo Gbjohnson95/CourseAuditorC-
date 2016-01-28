@@ -12,64 +12,45 @@ namespace CourseAuditor
 	{
 		private static XmlDocument config;
 
-
-		public static void Main (string[] args)
-		{
+		// Feeds the config path into readConfigAndRun -------------------------------------------------------------------------------------------------
+		public static void Main (string[] args) {
 			readConfigAndRun (args[0]);
-			Console.ReadKey ();
 		}
 
+		// Reads in Config, and grabs the target folder and target report file -------------------------------------------------------------------------
 		public static void readConfigAndRun(String configPath) {
-			config = new XmlDocument();
-			config.Load (configPath);
-			unZipAndRun(getTextNode (config.GetElementsByTagName ("containerFolder")[0]), getTextNode(config.GetElementsByTagName ("outFile") [0]));
+				config = new XmlDocument();
+				config.Load (configPath);
+				unZipAndRun(getTextNode (config.GetElementsByTagName ("containerFolder")[0]), getTextNode(config.GetElementsByTagName ("outFile") [0]));
+			
 		}
 
-		public static String getHeader () {
-			XmlNodeList printItems = config.GetElementsByTagName ("printItem");
-			String stringBuilder = "";
-			foreach (XmlNode node in printItems) {
-				stringBuilder += getTextNode (node.SelectSingleNode ("printTitle")) + ",";
-			}
-			return stringBuilder + "\n";
-		}
-
-
-		public static String getTextNode (XmlNode node) {
-			foreach (XmlNode child in node.ChildNodes)
-			{
-				if (child.NodeType == XmlNodeType.Text ||
-					child.NodeType == XmlNodeType.CDATA)
-				{
-					return child.Value;
-				}
-			} 
-			return "";
-		}
-
+		// Given the target folder, it will unzip any zips, and then send folders with imsmanifest.xml into manifest parser. ---------------------------
 		public static void unZipAndRun ( String topDir, String reportFile ) {
 			String[] zipsList = Directory.GetFiles (topDir, "*.zip");
 			String extractFolder;
 			startReportFile (reportFile);
 			PrintToFile (reportFile, getHeader ());
 
-			// Extract zips
-			Console.WriteLine ("---------- EXTRACTING ZIPS           ----------\n");
-			for (int i = 0; i < zipsList.Length; i++) {
-				// Generate extact folder name
-				extractFolder = Path.Combine (topDir, zipsList [i].Replace (".zip", ""));
+			// Extract zips --------------------------------------------------------------------------------
+			if (zipsList.Length > 0) {
+				Console.WriteLine ("---------- EXTRACTING ZIPS           ----------\n");
+				for (int i = 0; i < zipsList.Length; i++) {
+					// Generate extact folder name
+					extractFolder = Path.Combine (topDir, zipsList [i].Replace (".zip", ""));
 
-				// If that folder already exists, skip
-				if (!Directory.Exists (Path.Combine(topDir,extractFolder))) {
-					System.IO.Directory.CreateDirectory (extractFolder);
-					Console.WriteLine ("About to extract  " + new DirectoryInfo(zipsList [i]).Name);
-					ZipFile.ExtractToDirectory (Path.Combine (topDir, zipsList [i]), extractFolder);
-					Console.WriteLine ("\tExtracted " + new DirectoryInfo(zipsList [i]).Name + "\n");
+					// If that folder already exists, skip
+					if (!Directory.Exists (Path.Combine (topDir, extractFolder))) {
+						System.IO.Directory.CreateDirectory (extractFolder);
+						Console.WriteLine ("About to extract  " + new DirectoryInfo (zipsList [i]).Name);
+						ZipFile.ExtractToDirectory (Path.Combine (topDir, zipsList [i]), extractFolder);
+						Console.WriteLine ("\tExtracted " + new DirectoryInfo (zipsList [i]).Name + "\n");
+					}
 				}
+				Console.WriteLine ("---------- FINISHED EXTRACTING ZIPS  ----------\n\n");
 			}
-			Console.WriteLine ("---------- FINISHED EXTRACTING ZIPS  ----------\n\n");
 
-			// Run folders that contain a manifest
+			// Run folders that contain a manifest  ---------------------------------------------------------
 			Console.WriteLine ("---------- AUDITING COURSES          ---------- ");
 			String[] folders = Directory.GetDirectories(topDir);
 			for (int h = 0; h < folders.Length; h++) {
@@ -89,7 +70,8 @@ namespace CourseAuditor
 			}
 			Console.WriteLine ("---------- FINISHED AUDITING COURSES ----------");
 		}
-
+		
+		// Given a course folder it read in the manifest, and the config to generate a line ------------------------------------------------------------
 		public static void parseManifestAndRun( String path, String reportfile) {
 			// Load Manifest file from specified path
 			XmlDocument manifest = new XmlDocument();
@@ -165,8 +147,31 @@ namespace CourseAuditor
 				}
 			}
 		}
+		
+		// Gets the text node from an element ----------------------------------------------------------------------------------------------------------
+		public static String getTextNode (XmlNode node) {
+			foreach (XmlNode child in node.ChildNodes)
+			{
+				if (child.NodeType == XmlNodeType.Text ||
+					child.NodeType == XmlNodeType.CDATA)
+				{
+					return child.Value;
+				}
+			} 
+			return "";
+		}
 
-
+		// Generates a header for the report from the config file --------------------------------------------------------------------------------------
+		public static String getHeader () {
+			XmlNodeList printItems = config.GetElementsByTagName ("printItem");
+			String stringBuilder = "";
+			foreach (XmlNode node in printItems) {
+				stringBuilder += getTextNode (node.SelectSingleNode ("printTitle")) + ",";
+			}
+			return stringBuilder + "\n";
+		}
+		
+		// Appends a file with text --------------------------------------------------------------------------------------------------------------------
 		public static void PrintToFile(String file, String content) {
 			// Make the file if it doesn't exist
 			if (!File.Exists (file)) {
@@ -179,7 +184,8 @@ namespace CourseAuditor
 				sw.Write (content);
 			}
 		}
-
+		
+		// If a report of the same name is already there, delete it ------------------------------------------------------------------------------------
 		public static void startReportFile(String file) {
 			if (File.Exists (file)) {
 				File.Delete (file);
