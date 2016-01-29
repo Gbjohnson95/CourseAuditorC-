@@ -14,7 +14,10 @@ namespace CourseAuditor
 
 		// Feeds the config path into readConfigAndRun -------------------------------------------------------------------------------------------------
 		public static void Main (string[] args) {
-			readConfigAndRun (args[0]);
+			for (int i = 0; i < args.Length; i++) {
+				readConfigAndRun (args[i]);
+			}
+			Console.Beep();
 		}
 
 		// Reads in Config, and grabs the target folder and target report file -------------------------------------------------------------------------
