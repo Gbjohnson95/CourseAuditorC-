@@ -1,0 +1,76 @@
+<config>
+    <prefs>
+        <containerFolder>C:\Users\gbjohnson\Desktop\CourseAuditor\Courses</containerFolder>
+        <outFile>C:\Users\gbjohnson\Desktop\CourseAuditor\Reports\Full Report.csv</outFile>
+    </prefs>
+    <outputConfig>
+        <printItem>
+            <printTitle>OrgUnitID</printTitle>
+            <query type="OUI"></query>
+        </printItem>
+        <printItem>
+            <printTitle>Document Title</printTitle>
+            <query type="DocTitle"></query>
+        </printItem>
+        <printItem>
+            <printTitle>HTML Title</printTitle>
+            <query type="htmlTitle"></query>
+        </printItem>
+        <printItem>
+            <printTitle>IL2 Links</printTitle>
+            <query type="CSS">a[href*='brainhoney']</query>
+        </printItem>
+        <printItem>
+            <printTitle>Box Links</printTitle>
+            <query type="CSS">a[href*='box.com']</query>
+        </printItem>
+        <printItem>
+            <printTitle>Benjamin Links</printTitle>
+            <query type="CSS">a[href*='courses.byui.edu']</query>
+        </printItem>
+        <printItem>
+            <printTitle>Static IL3 Links</printTitle>
+            <query type="CSS">a[href*=/home], a[href*=/viewContent], a[href*=/calendar]</query>
+        </printItem>
+        <printItem>
+            <printTitle>Bad Link Target Attribute</printTitle>
+            <query type="CSS">a:not([target*='_blank'])</query>
+        </printItem>
+        <printItem>
+            <printTitle>Empty Links</printTitle>
+            <query type="CSS">a:not([href])</query>
+        </printItem>
+        <printItem>
+            <printTitle>IL2 Images</printTitle>
+            <query type="CSS">img[src*='brainhoney']</query>
+        </printItem>
+        <printItem>
+            <printTitle>CSS Bolds</printTitle>
+            <query type="RegEx">font-weight: bold</query>
+        </printItem>
+        <printItem>
+            <printTitle>Spans</printTitle>
+            <query type="CSS">span</query>
+        </printItem>
+        <printItem>
+            <printTitle>Depricated/Bad Tags</printTitle>
+            <query type="CSS">b, i, br</query>
+        </printItem>
+        <printItem>
+            <printTitle>IL2 Variables</printTitle>
+            <query type="RegEx">\$[A-Za-z]+\S\$</query>
+        </printItem>
+        <printItem>
+            <printTitle>Mentions of Saturday</printTitle>
+            <query type="RegEx">[sS]aturday</query>
+        </printItem>
+        <printItem>
+            <printTitle>Headers</printTitle>
+            <query type="Headers"></query>
+        </printItem>
+        <printItem>
+            <printTitle>Document Link</printTitle>
+            <query type="Link"></query>
+        </printItem>
+    </outputConfig>
+</config>

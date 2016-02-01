@@ -1,0 +1,43 @@
+<config>
+    <prefs> <containerFolder>C:\Users\gbjohnson\Desktop\CourseAuditor\Courses</containerFolder>
+        <outFile>C:\Users\gbjohnson\Desktop\CourseAuditor\Reports\Link Report.csv</outFile>
+    </prefs>
+    <outputConfig>
+        <printItem>
+            <printTitle>OrgUnitID</printTitle>
+            <query type="OUI"></query>
+        </printItem>
+        <printItem>
+            <printTitle>Document Title</printTitle>
+            <query type="DocTitle"></query>
+        </printItem>
+        <printItem>
+            <printTitle>All Links</printTitle>
+            <query type="CSS">a</query>
+        </printItem>
+        <printItem>
+            <printTitle>IL2 Links</printTitle>
+            <query type="CSS">a[href*='brainhoney']</query>
+        </printItem>
+        <printItem>
+            <printTitle>Box Links</printTitle>
+            <query type="CSS">a[href*='box.com']</query>
+        </printItem>
+        <printItem>
+            <printTitle>Benjamin Links</printTitle>
+            <query type="CSS">a[href*='courses.byui.edu']</query>
+        </printItem>
+        <printItem>
+            <printTitle>Static IL3 Links</printTitle>
+            <query type="CSS">a[href*=/home], a[href*=/viewContent], a[href*=/calendar]</query>
+        </printItem>
+        <printItem>
+        <printTitle>IL2 Images</printTitle>
+            <query type="CSS">img[src*='brainhoney']</query>
+        </printItem>
+        <printItem>
+            <printTitle>Document Link</printTitle>
+            <query type="Link"></query>
+        </printItem>
+    </outputConfig>
+</config>

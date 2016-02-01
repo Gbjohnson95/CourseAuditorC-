@@ -1,0 +1,119 @@
+------ Running CourseAuditor -------
+CourseAuditor.exe {config file}
+
+
+
+------ Configuration file format ------
+Open Config.xml with your prefered text editor
+	- Set <containerFolder> to the folder that contains the exports
+	- Set <outFile> to the csv that you want to write
+	
+	
+	
+	
+------ To make a column ------
+Open Config.xml with your prefered text editor
+
+	Here is the format for a new query.
+		<printItem>
+			<printTitle>This is the title of the column in the document generated</printTitle>
+			<query type="{query type}">{optional query text}</query>
+		</printItem>
+		
+	The query formats are
+		- OUI       : Returns the OrgUnitID
+		- DocTitle  : Returns the title of the document as it apears in BrightSpace
+		- htmlTitle : Returns the html title of the document
+		- CSS       : Returns a count of all instances of a CSS Query
+		- RegEx     : Returns a count of all instances of a regular expression in the text of a page
+		- Headers   : Returns a check of header tags for ADA compliance
+		- Link      : Returns an IL3 for the document
+		
+	Examples
+	
+		<printItem>
+            <printTitle>IL2 Variables</printTitle>
+            <query type="RegEx">\$[A-Za-z]+\S\$</query>
+        </printItem>
+		
+		<printItem>
+            <printTitle>Static IL3 Links</printTitle>
+            <query type="CSS">a[href*=/home], a[href*=/viewContent], a[href*=/calendar]</query>
+        </printItem>
+		
+		<printItem>
+            <printTitle>OrgUnitID</printTitle>
+            <query type="OUI"></query>
+        </printItem>
+		
+		
+Example Config Document
+
+<config>
+    <prefs>
+        <containerFolder>C:\Users\gbjohnson\Desktop\Courses\Old Exports\All Exported Courses</containerFolder>
+        <outFile>C:\Users\gbjohnson\Desktop\CAC#\Result.csv</outFile>
+    </prefs>
+    <outputConfig>
+        <printItem>
+            <printTitle>OrgUnitID</printTitle>
+            <query type="OUI"></query>
+        </printItem>
+        <printItem>
+            <printTitle>Document Title</printTitle>
+            <query type="DocTitle"></query>
+        </printItem>
+        <printItem>
+            <printTitle>HTML Title</printTitle>
+            <query type="htmlTitle"></query>
+        </printItem>
+        <printItem>
+            <printTitle>IL2 Links</printTitle>
+            <query type="CSS">a[href*='brainhoney']</query>
+        </printItem>
+        <printItem>
+            <printTitle>Box Links</printTitle>
+            <query type="CSS">a[href*='box.com']</query>
+        </printItem>
+        <printItem>
+            <printTitle>Benjamin Links</printTitle>
+            <query type="CSS">a[href*='courses.byui.edu']</query>
+        </printItem>
+        <printItem>
+            <printTitle>Static IL3 Links</printTitle>
+            <query type="CSS">a[href*=/home], a[href*=/viewContent], a[href*=/calendar]</query>
+        </printItem>
+        <printItem>
+            <printTitle>Bad Link Target Attribute</printTitle>
+            <query type="CSS">a:not([target*='_blank'])</query>
+        </printItem>
+        <printItem>
+            <printTitle>CSS Bolds</printTitle>
+            <query type="RegEx">font-weight: bold</query>
+        </printItem>
+        <printItem>
+            <printTitle>Spans</printTitle>
+            <query type="CSS">span</query>
+        </printItem>
+        <printItem>
+            <printTitle>Depricated/Bad Tags</printTitle>
+            <query type="CSS">b, i, br</query>
+        </printItem>
+        <printItem>
+            <printTitle>IL2 Variables</printTitle>
+            <query type="RegEx">\$[A-Za-z]+\S\$</query>
+        </printItem>
+        <printItem>
+            <printTitle>Mentions of Saturday</printTitle>
+            <query type="RegEx">[sS]aturday</query>
+        </printItem>
+        <printItem>
+            <printTitle>Headers</printTitle>
+            <query type="Headers"></query>
+        </printItem>
+        <printItem>
+            <printTitle>Document Link</printTitle>
+            <query type="Link"></query>
+        </printItem>
+    </outputConfig>
+</config>
