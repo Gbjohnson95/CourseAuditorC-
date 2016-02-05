@@ -7,14 +7,14 @@ namespace CourseAuditor
 {
     public class CourseDocument
     {
-        private HtmlAgilityPack.HtmlDocument htmlDoc;
-        private String DocName, OrgUnitID, DocID;
+        private HtmlDocument htmlDoc;
+        private string DocName, OrgUnitID, DocID;
         private CQ dom;
 
-        public void loadDoc(String filepath, String docname, String orgunitid, String docid)
+        public void LoadDoc(string filepath, string docname, string orgunitid, string docid)
         {
             // Load file into parser
-            htmlDoc = new HtmlAgilityPack.HtmlDocument();
+            htmlDoc = new HtmlDocument();
             htmlDoc.Load(filepath);
             dom = CQ.Create(htmlDoc.DocumentNode.OuterHtml);
 
@@ -25,22 +25,22 @@ namespace CourseAuditor
         }
 
         // Counts a CSS query
-        public int CountQuery(String query)
+        public int CountQuery(string query)
         {
             CQ result = dom.Select(query);
             return result.Length;
         }
 
         // Counts occureneces of a Regular Expression
-        public int CountRegEx(String pattern)
+        public int CountRegEx(string pattern)
         {
             return Regex.Matches(htmlDoc.DocumentNode.OuterHtml, pattern).Count;
         }
 
         // Gets the HTML title
-        public String getHtmlTitle()
+        public string GetHtmlTitle()
         {
-            String title, rawTitle = "";
+            string title, rawTitle = "";
             if (dom.Select("title") != null)
             {
                 rawTitle = dom.Select("title").Html();
@@ -59,9 +59,9 @@ namespace CourseAuditor
         }
 
         // Checks the headers for ADA compliance
-        public String checkHeaders()
+        public string CheckHeaders()
         {
-            String headers = "";
+            string headers = "";
             if (dom.Select("h1").Length > 0)
             {
                 headers += "1";
@@ -101,16 +101,17 @@ namespace CourseAuditor
         }
 
         // Generates a working link to the document
-        public String generateD2lLink()
+        public string GenerateD2lLink()
         {
             return "https://byui.brightspace.com/d2l/le/content/" + OrgUnitID + "/viewContent/" + DocID + "/View";
         }
 
-        public int imageWidth()
+
+        public int ImageWidth()
         {
             //*
             int imgCounter = 0;
-            String width;
+            string width;
             for (int i = 0; i < dom.Select("img").Length; i++)
             {
                 if (dom.Select("img")[i].HasAttribute("width"))
@@ -132,6 +133,4 @@ namespace CourseAuditor
             //*/
         }
     }
-
-
 }

@@ -1,7 +1,7 @@
 <config>
 	<prefs>
-		<containerFolder>C:\Users\gbjohnson\Desktop\Courses\Old Exports\All Exported Courses</containerFolder>
-		<outFile>C:\Users\gbjohnson\Desktop\Result.csv</outFile>
+		<containerFolder>C:\Users\jbobbaum\Documents\GitHub\CourseAuditorC-\CourseAuditor\bin\tinker\zips</containerFolder>
+		<outFile>C:\Users\jbobbaum\Documents\GitHub\CourseAuditorC-\CourseAuditor\bin\tinker\results\report.csv</outFile>
 	</prefs>
 	<outputConfig>
 		<printItem>
