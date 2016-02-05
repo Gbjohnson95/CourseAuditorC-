@@ -1,24 +1,9 @@
 using Ionic.Zip;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Xml;
-/// <summary>
-/// Made a lot of small changes. Only real changes so far are on UnzipFilesWithManifest
-/// 
-/// ChangeLog:
-/// Removed the HtmlAgilityPack, System.Xml.XPath, and CsQuery usings. HtmlAgilityPack and CsQuery pack are used in CourseDocument and aren't needed in CourseAuditor.
-/// Put a capital letter at the beginning of method/function names. That's the convention they make me follow, so I applied it here.
-/// Replaced all instances of String with string. In Java the String is both the var and the object. C# has them seperated into string and String (think int vs. Integer)
-/// Replaced the method/function comments with method/function summaries. This lets them show as docs (when you hover over the name). Not sure if Xamarin does that or not, similar to a java doc
-/// Renamed StartReportFile to DeleteOldReportFile. Seemed to fit it's functionality better as it deleted a file instead of started, and PrintToFile creates if the report doesn't already exist.
-/// Renamed stringBuild to reportString. Seemed like it described it's use better as well as changing the name away from stringBuilder (StringBuilder being a class)
-/// 
-/// Split UnzipAndRun into two functions - UnzipFilesWithManifest and RunFoldersWithManifest
-/// Removed the manifest check from RunFoldersWithManifest. This is because the check is now being run before extraction happens. Anything extracted should have a manifest.
-/// Removed the reportFile and interactions with it from UnzipFilesWithManifest and from RunFoldersWithManifest. It is now only referenced in ParseManifestAndRun. 
-///     This should keep the code cleaner as well as avoid passing a non-config var through the entire code.
-/// Added Ionic.Zip using. This is from the DotNetZip package. It doesn't seem to run into the hanging issue that was experienced using System.IO.Compression
-/// </summary>
+
 namespace CourseAuditor
 {
     class MainClass
@@ -47,8 +32,7 @@ namespace CourseAuditor
             config.Load(configPath);
             string topDirectory = GetTextNode(config.GetElementsByTagName("containerFolder")[0]);
             UnzipFilesWithManifest(topDirectory);
-            RunFoldersWithManifest(topDirectory);
-			
+            CleanUp(ParseDirector(topDirectory));
         }
         /// <summary>
         /// Given the target folder, it will unzip any zips, and then send folders with imsmanifest.xml into manifest parser.
@@ -90,32 +74,47 @@ namespace CourseAuditor
             }
         }
 
-        public static void RunFoldersWithManifest(string topDirectory)
+        /// <summary>
+        /// Directs the parsing of folders. Manages the exceptions and console output. Returns a list of succsfully parsed folders.
+        /// </summary>
+        /// <param name="topDirectory"></param>
+        /// <returns></returns>
+        public static List<FileInfo> ParseDirector(string topDirectory)
         {
             // Run folders that contain a manifest  ---------------------------------------------------------
             Console.WriteLine("---------- AUDITING COURSES          ---------- ");
             string[] folders = Directory.GetDirectories(topDirectory);
+            List<FileInfo> parsedFiles = new List<FileInfo>();
             for (int h = 0; h < folders.Length; h++)
             {
-                FileInfo extractedCourse = new FileInfo(folders[h]);
+                FileInfo unzippedCourse = new FileInfo(folders[h]);
                 try
                 {
-                    Console.WriteLine("Auditing: " + extractedCourse.FullName);
+                    Console.WriteLine("Auditing: " + unzippedCourse.FullName);
                     ParseManifestAndRun(folders[h]);
+                    parsedFiles.Add(new FileInfo(unzippedCourse.FullName));
                 }
                 catch (XmlException e)
                 {
-                    Console.WriteLine("\tFailed to audit course " + extractedCourse.FullName);
+                    Console.WriteLine("\tFailed to audit course " + unzippedCourse.FullName);
                     Console.WriteLine("\tInvalid XML found. Moving On.");
                     Console.WriteLine("\tSource: " + e.Source);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Failed to audit course " + extractedCourse.FullName);
+                    Console.WriteLine("Failed to audit course " + unzippedCourse.FullName);
                     Console.WriteLine("\tSource: " + e.TargetSite);
                 }
             }
             Console.WriteLine("---------- FINISHED AUDITING COURSES ----------");
+            // If a parse failes, let the user know how many failed.
+            if (folders.Length > parsedFiles.Count)
+            {
+                Console.WriteLine(folders.Length - parsedFiles.Count + " File/s did not successfully parse.");
+                Console.ReadKey();
+            }
+            // Return a list of all the successfully parsed courses
+            return parsedFiles;
         }
 		
         /// <summary>
@@ -136,12 +135,12 @@ namespace CourseAuditor
 
             // Declare some variables
             string reportString = "";
-            string doctitle, ident, filepath, orgunitid, type;
+            string doctitle, ident, filepath, orgUnitId, type;
 
             // Populate some variables
-            XmlNodeList resourceElems = manifest.GetElementsByTagName("resource");
-            XmlNodeList itemElems = manifest.GetElementsByTagName("item");
-            orgunitid = manifest.GetElementsByTagName("manifest")[0].Attributes["identifier"].InnerText.Substring(4);
+            XmlNodeList resourceElements = manifest.GetElementsByTagName("resource");
+            XmlNodeList itemElements = manifest.GetElementsByTagName("item");
+            orgUnitId = manifest.GetElementsByTagName("manifest")[0].Attributes["identifier"].InnerText.Substring(4);
 
             // Declare a CourseDocument
             CourseDocument doc = new CourseDocument();
@@ -149,19 +148,22 @@ namespace CourseAuditor
             XmlNodeList printItem = config.GetElementsByTagName("printItem");
 
             // Increment through the elements
-            for (int i = 0; i < resourceElems.Count; i++)
+            for (int i = 0; i < resourceElements.Count; i++)
             {
-                if ("content".Equals(resourceElems[i].Attributes["d2l_2p0:material_type"].InnerText))
-                { // If the item is a content page
-                    filepath = resourceElems[i].Attributes["href"].InnerText; // Get the path
-                    for (int h = 0; h < itemElems.Count; h++)
-                    { // Increment through the items list
-                        // If the item matches its resource item, and the document is infact an HTML pagem run!
-                        if (itemElems[h].Attributes["identifierref"].InnerText.Equals(resourceElems[i].Attributes["identifier"].InnerText))
+                // If the item is a content page
+                if ("content".Equals(resourceElements[i].Attributes["d2l_2p0:material_type"].InnerText))
+                {
+                    // Get the path
+                    filepath = resourceElements[i].Attributes["href"].InnerText;
+                    // Increment through the items list
+                    for (int h = 0; h < itemElements.Count; h++)
+                    { 
+                        // If the item matches its resource item, and the document is in fact an HTML pagem run!
+                        if (itemElements[h].Attributes["identifierref"].InnerText.Equals(resourceElements[i].Attributes["identifier"].InnerText))
                         {
                             // Get the last set of data before running document
-                            doctitle = itemElems[h].ChildNodes[0].InnerText;
-                            ident = itemElems[h].Attributes["identifier"].InnerText;
+                            doctitle = itemElements[h].ChildNodes[0].InnerText;
+                            ident = itemElements[h].Attributes["identifier"].InnerText;
 
                             // Get rid of commas
                             doctitle = doctitle.Replace(",", "");
@@ -173,7 +175,7 @@ namespace CourseAuditor
                                 // Initialize the document
                                 if (filepath.EndsWith("html"))
                                 {
-                                    doc.LoadDoc(Path.Combine(path, filepath), doctitle, orgunitid, ident);
+                                    doc.LoadDoc(Path.Combine(path, filepath), doctitle, orgUnitId, ident);
 
                                     // Start pulling data from the document and putting it into a return string
                                     foreach (XmlNode node in printItem)
@@ -182,7 +184,7 @@ namespace CourseAuditor
                                         switch (type)
                                         {
                                             case "OUI":
-                                                reportString += orgunitid + ",";// OrgUnitID of document
+                                                reportString += orgUnitId + ",";// OrgUnitID of document
                                                 break;
                                             case "DocTitle":
                                                 reportString += doctitle + ",";// Title as the course displays it
@@ -221,8 +223,7 @@ namespace CourseAuditor
         {
             foreach (XmlNode child in node.ChildNodes)
             {
-                if (child.NodeType == XmlNodeType.Text ||
-                child.NodeType == XmlNodeType.CDATA)
+                if (child.NodeType == XmlNodeType.Text || child.NodeType == XmlNodeType.CDATA)
                 {
                     return child.Value;
                 }
@@ -249,17 +250,7 @@ namespace CourseAuditor
         /// </summary>
         public static void PrintToFile(string filePath, string content)
         {
-            // I commented out the first part because it didn't seem necessary. The File.AppendText() will create the file if it doesn't exist anyway.
-
-            //// Make the file if it doesn't exist
-            //if (!File.Exists(file))
-            //{
-            //    using (StreamWriter sw = File.CreateText(file))
-            //    {
-            //    }
-            //}
-            // Write to file if it does
-
+            // Appends the content to the file. Creates the file if it doesn't already exist.
             using (StreamWriter sw = File.AppendText(filePath))
             {
                 sw.Write(content);
@@ -276,6 +267,18 @@ namespace CourseAuditor
                 File.Delete(filePath);
             }
 
+        }
+
+        /// <summary>
+        /// Recursively deletes any extracted courses that parsed successfully
+        /// </summary>
+        /// <param name="parsedCourses"></param>
+        public static void CleanUp(List<FileInfo> parsedCourses)
+        {
+            foreach (FileInfo parsedCourse in parsedCourses)
+            {
+                Directory.Delete(parsedCourse.FullName, true);
+            }
         }
     }
 }
