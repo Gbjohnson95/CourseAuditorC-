@@ -21,7 +21,7 @@
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
     <PlatformTarget>x86</PlatformTarget>
-    <Commandlineparameters>"C:\Users\gbjohnson\Desktop\CAConfig.xml" </Commandlineparameters>
+    <Commandlineparameters>"C:\Users\gbjohnson\Desktop\CourseAuditor\CourseAuditor 4.0.0\Configs\Full Report.xml"</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <Optimize>false</Optimize>
@@ -30,6 +30,7 @@
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
     <PlatformTarget>x86</PlatformTarget>
+    <Commandlineparameters>C:\Users\gbjohnson\Desktop\CourseAuditor\CourseAuditor 4.0.0\Configs\Full Report.xml</Commandlineparameters>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

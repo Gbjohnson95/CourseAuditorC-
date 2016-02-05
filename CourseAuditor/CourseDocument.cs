@@ -105,6 +105,32 @@ namespace CourseAuditor
         {
             return "https://byui.brightspace.com/d2l/le/content/" + OrgUnitID + "/viewContent/" + DocID + "/View";
         }
+
+        public int imageWidth()
+        {
+            //*
+            int imgCounter = 0;
+            String width;
+            for (int i = 0; i < dom.Select("img").Length; i++)
+            {
+                if (dom.Select("img")[i].HasAttribute("width"))
+                {
+                    width = dom.Select("img")[i].GetAttribute("width");
+                    if (width.Contains("%") && !dom.Select("img")[i].GetAttribute("src").Contains("banner"))
+                    {
+                        imgCounter++;
+                    }
+                    else
+                    {
+                        imgCounter++;
+                    }
+                }
+            }
+            return imgCounter;
+            /*/
+            return 5;
+            //*/
+        }
     }
 
 

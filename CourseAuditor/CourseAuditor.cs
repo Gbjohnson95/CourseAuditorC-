@@ -134,7 +134,7 @@ namespace CourseAuditor
                                 if (filepath.EndsWith("html"))
                                 {
                                     doc.loadDoc(Path.Combine(path, filepath), doctitle, orgunitid, ident);
-
+                                    try {
                                     // Start pulling data from the document and putting it into a return string
                                     foreach (XmlNode node in printItem)
                                     {
@@ -162,11 +162,18 @@ namespace CourseAuditor
                                             case "Link":
                                                 stringBuilder += doc.generateD2lLink() + ","; // Generates a D2L Link
                                                 break;
+                                             case "ImageWidth":
+                                                stringBuilder += doc.imageWidth() + ","; // Generates a D2L Link
+                                                break;
                                         }
                                     }
                                     PrintToFile(reportfile, stringBuilder + "\n");
                                     stringBuilder = "";
+                                    } catch (Exception e) {
+                                        Console.WriteLine("Failed to audit Document " + doctitle);
+                                    }
                                 }
+                                
                             }
                         }
                     }
