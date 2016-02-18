@@ -45,6 +45,10 @@
             <query type="CSS">img[src*='brainhoney']</query>
         </printItem>
         <printItem>
+            <printTitle>Image Alt Text</printTitle>
+            <query type="CSS">img:not([alt])</query>
+        </printItem>
+        <printItem>
             <printTitle>CSS Bolds</printTitle>
             <query type="RegEx">font-weight: bold</query>
         </printItem>
@@ -61,8 +65,12 @@
             <query type="RegEx">\$[A-Za-z]+\S\$</query>
         </printItem>
         <printItem>
-            <printTitle>Mentions of Saturday</printTitle>
-            <query type="RegEx">[sS]aturday</query>
+            <printTitle>Mentions Day of Week</printTitle>
+            <query type="RegEx">[sS]aturday|[sS]unday|[mM]onday|[tT]uesday|[wW]ednesday|[tT]ursday|[fF]riday</query>
+        </printItem>
+		<printItem>
+            <printTitle>Has Copyright</printTitle>
+            <query type="CSS">script[src*='course.js']</query>
         </printItem>
         <printItem>
             <printTitle>Headers</printTitle>

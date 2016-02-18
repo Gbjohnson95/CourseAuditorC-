@@ -19,6 +19,7 @@ namespace CourseAuditor
             for (int i = 0; i < args.Length; i++)
             {
                 ReadConfigAndRun(args[i]);
+
             }
             Console.Beep();
         }
@@ -32,8 +33,9 @@ namespace CourseAuditor
             config.Load(configPath);
             string topDirectory = GetTextNode(config.GetElementsByTagName("containerFolder")[0]);
             UnzipFilesWithManifest(topDirectory);
-            CleanUp(ParseDirector(topDirectory));
+            ParseDirector(topDirectory); // Why undo the most intesive task possible?
         }
+
         /// <summary>
         /// Given the target folder, it will unzip any zips, and then send folders with imsmanifest.xml into manifest parser.
         /// </summary>
@@ -81,6 +83,10 @@ namespace CourseAuditor
         /// <returns></returns>
         public static List<FileInfo> ParseDirector(string topDirectory)
         {
+            string reportFile = GetTextNode(config.GetElementsByTagName("outFile")[0]);
+            DeleteOldReportFile(reportFile); // Why? Unzipping is the longest operation by far....
+            PrintToFile(reportFile, GetHeader());
+
             // Run folders that contain a manifest  ---------------------------------------------------------
             Console.WriteLine("---------- AUDITING COURSES          ---------- ");
             string[] folders = Directory.GetDirectories(topDirectory);
@@ -111,12 +117,11 @@ namespace CourseAuditor
             if (folders.Length > parsedFiles.Count)
             {
                 Console.WriteLine(folders.Length - parsedFiles.Count + " File/s did not successfully parse.");
-                Console.ReadKey();
             }
             // Return a list of all the successfully parsed courses
             return parsedFiles;
         }
-		
+
         /// <summary>
         /// Given a course folder it reads in the manifest, and the config to generate a line.
         /// </summary>
@@ -126,8 +131,6 @@ namespace CourseAuditor
         {
             //Begins the report
             string reportFile = GetTextNode(config.GetElementsByTagName("outFile")[0]);
-            DeleteOldReportFile(reportFile);
-            PrintToFile(reportFile, GetHeader());
 
             // Load Manifest file from specified path
             XmlDocument manifest = new XmlDocument();
@@ -246,18 +249,6 @@ namespace CourseAuditor
         }
 
         /// <summary>
-        /// Appends text to a file
-        /// </summary>
-        public static void PrintToFile(string filePath, string content)
-        {
-            // Appends the content to the file. Creates the file if it doesn't already exist.
-            using (StreamWriter sw = File.AppendText(filePath))
-            {
-                sw.Write(content);
-            }
-        }
-
-        /// <summary>
         /// If a report of the same name is already there, delete it.
         /// </summary>
         public static void DeleteOldReportFile(string filePath)
@@ -270,14 +261,14 @@ namespace CourseAuditor
         }
 
         /// <summary>
-        /// Recursively deletes any extracted courses that parsed successfully
+        /// Appends text to a file
         /// </summary>
-        /// <param name="parsedCourses"></param>
-        public static void CleanUp(List<FileInfo> parsedCourses)
+        public static void PrintToFile(string filePath, string content)
         {
-            foreach (FileInfo parsedCourse in parsedCourses)
+            // Appends the content to the file. Creates the file if it doesn't already exist.
+            using (StreamWriter sw = File.AppendText(filePath))
             {
-                Directory.Delete(parsedCourse.FullName, true);
+                sw.Write(content);
             }
         }
     }
